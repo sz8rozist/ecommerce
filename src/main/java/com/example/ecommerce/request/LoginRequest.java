@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 public class LoginRequest {
-    @NotBlank
+    @NotBlank(message = "A felhasználónév megadása kötelező.")
     private String username;
-    @NotBlank
+    @NotBlank(message = "A jelszó megadása kötelező.")
     private String password;
 }
