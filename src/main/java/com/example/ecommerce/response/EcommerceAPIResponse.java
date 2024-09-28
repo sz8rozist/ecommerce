@@ -1,20 +1,18 @@
 package com.example.ecommerce.response;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL) // Csak a nem null értékeket tartalmazza
 public class EcommerceAPIResponse {
     private Map<String, String> errors = new HashMap<>();
-    private Object data;
     private Timestamp timestamp;
+    private Object data;
     private String message;
 
     public EcommerceAPIResponse(Object data) {
@@ -28,5 +26,8 @@ public class EcommerceAPIResponse {
     public EcommerceAPIResponse(String message){
         this.timestamp = new Timestamp(System.currentTimeMillis());
         this.message = message;
+    }
+    public Map<String, String> getErrors() {
+        return errors.isEmpty() ? null : errors;
     }
 }
