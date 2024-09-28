@@ -1,0 +1,12 @@
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/ECommerceApplication.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/config/EcommerceConfig.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/model/Role.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/model/User.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/repository/UserRepository.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/security/jwt/AuthTokenFilter.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/security/jwt/JwtAuthEntryPoint.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/security/jwt/JwtUtils.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/security/user/EcommerceUserDetails.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/security/user/EcommerceUserDetailsService.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/service/user/IUserService.java
+/Users/rozsaistvan/Documents/ecommerce/src/main/java/com/example/ecommerce/service/user/UserService.java
