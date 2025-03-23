@@ -1,6 +1,7 @@
 package com.example.ecommerce.service;
 
 import com.example.ecommerce.exception.EcommerceApplicationException;
+import com.example.ecommerce.exception.EntityNotFoundException;
 import com.example.ecommerce.exception.InvalidCredentialsException;
 import com.example.ecommerce.model.Role;
 import com.example.ecommerce.model.User;
@@ -70,5 +71,13 @@ public class UserService {
         }
         user.setRoles(roles);
         return userRepository.save(user);
+    }
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található felhasználó."));
     }
 }

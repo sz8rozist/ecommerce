@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequestMapping("/user")
 @RestController
 public class UserController {
@@ -28,5 +30,15 @@ public class UserController {
     @GetMapping("/loggedUser")
     public User getLoggedUser() {
         return userService.getAuthenticatedUser();
+    }
+
+    @GetMapping("/findAll")
+    public List<User> findAll() {
+        return userService.findAll();
+    }
+
+    @GetMapping("/findById/(:id)")
+    public User findById(@PathVariable Long id) {
+        return userService.findById(id);
     }
 }
