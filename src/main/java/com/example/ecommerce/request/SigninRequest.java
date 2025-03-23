@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class LoginRequest {
+public class SigninRequest {
     @NotBlank(message = "A felhasználónév megadása kötelező.")
     private String username;
     @NotBlank(message = "A jelszó megadása kötelező.")

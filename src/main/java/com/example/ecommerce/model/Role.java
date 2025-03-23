@@ -1,5 +1,6 @@
 package com.example.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,6 @@ public class Role {
         this.name = name;
     }
     @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
     private Collection<User> users = new HashSet<>();
 }

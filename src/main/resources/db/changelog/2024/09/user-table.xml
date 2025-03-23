@@ -12,6 +12,7 @@
             </column>
             <column name="username" type="VARCHAR(255)"/>
             <column name="password" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
     <changeSet id="1727539720440-2" author="rozsaistvan">
