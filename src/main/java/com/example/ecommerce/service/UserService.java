@@ -59,20 +59,13 @@ public class UserService {
 
 
     public User signup(SignupRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new EcommerceApplicationException("A felhasználónév már foglalt!");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EcommerceApplicationException("Az e-mail cím már foglalt!");
-        }
-
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         List<Role> roles = new ArrayList<>();
         roleRepository.findByName(request.getRole()).ifPresent(roles::add);
-        if(roles.isEmpty()){
+        if (roles.isEmpty()) {
             throw new EcommerceApplicationException("Nem található jogosultság!");
         }
         user.setRoles(roles);
