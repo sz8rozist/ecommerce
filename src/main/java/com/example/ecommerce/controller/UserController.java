@@ -7,9 +7,10 @@ import com.example.ecommerce.response.AuthResponse;
 import com.example.ecommerce.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RequestMapping("/user")
 @RestController
@@ -33,11 +34,11 @@ public class UserController {
     }
 
     @GetMapping("/findAll")
-    public List<User> findAll() {
-        return userService.findAll();
+    public Page<User> findAll(Pageable pageable) {
+        return userService.findAll(pageable);
     }
 
-    @GetMapping("/findById/(:id)")
+    @GetMapping("/findById/:id")
     public User findById(@PathVariable Long id) {
         return userService.findById(id);
     }

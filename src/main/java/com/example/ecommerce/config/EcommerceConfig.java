@@ -65,11 +65,4 @@ public class EcommerceConfig {
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-    @Bean
-    public FilterRegistrationBean<HiddenHttpMethodFilter> hiddenHttpMethodFilter() {
-        FilterRegistrationBean<HiddenHttpMethodFilter> filter = new FilterRegistrationBean<>(new HiddenHttpMethodFilter());
-        filter.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return filter;
-    }
-
 }
