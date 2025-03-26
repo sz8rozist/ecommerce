@@ -1,6 +1,5 @@
 package com.example.ecommerce.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,6 +21,6 @@ public class Role {
         this.name = name;
     }
     @ManyToMany(mappedBy = "roles")
-    @JsonManagedReference  // A ciklikus hivatkozás egyik oldalát kezeljük.
+    @JsonManagedReference
     private Collection<User> users = new HashSet<>();
 }

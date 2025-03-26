@@ -13,5 +13,15 @@
             <column name="name" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-
+    <changeSet id="1743018141494-1" author="rozsaistvan">
+        <insert tableName="role">
+            <column name="name" value="ADMIN" />
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="CUSTOMER" />
+        </insert>
+        <insert tableName="role">
+            <column name="name" value="GUEST" />
+        </insert>
+    </changeSet>
 </databaseChangeLog>
