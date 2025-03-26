@@ -12,6 +12,11 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
+    @JoinColumn(name = "product_id")  // A megfelelő idegen kulcs
     private Product product;
     private int quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")  // A megfelelő idegen kulcs
+    private Order order;
 }
