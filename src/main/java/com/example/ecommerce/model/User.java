@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 @Entity
 @Data
@@ -23,5 +24,9 @@ public class User {
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     @JsonIgnoreProperties({"users"})
     private Collection<Role> roles = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"users"})
+    private List<Cart> carts;
 
 }

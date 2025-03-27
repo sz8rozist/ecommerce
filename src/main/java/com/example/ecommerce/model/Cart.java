@@ -1,5 +1,6 @@
 package com.example.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-public class CartItem {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,8 +16,4 @@ public class CartItem {
     @JoinColumn(name = "product_id")  // A megfelelő idegen kulcs
     private Product product;
     private int quantity;
-
-    @ManyToOne
-    @JoinColumn(name = "order_id")  // A megfelelő idegen kulcs
-    private Order order;
 }
