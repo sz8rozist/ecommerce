@@ -1,6 +1,7 @@
 package com.example.ecommerce.response;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -17,6 +18,8 @@ public class ApiResponseHandler implements ResponseBodyAdvice<Object> {
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+        response.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
         // Ha már EcommerceAPIResponse, ne csomagoljuk újra
         if (body instanceof EcommerceAPIResponse) {
             return body;
@@ -34,6 +37,7 @@ public class ApiResponseHandler implements ResponseBodyAdvice<Object> {
 
         // Ha a válasz bináris adat (pl. fájl letöltés), akkor ne csomagoljuk JSON-be
         if (body instanceof byte[]) {
+            response.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
             return body;
         }
 
