@@ -32,7 +32,7 @@ public class ProductService {
 
         File uploadDir = new File(UPLOAD_DIR);
         if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+            uploadDir.mkdir();
         }
 
         String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
