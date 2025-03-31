@@ -17,9 +17,27 @@ public class ApiResponseHandler implements ResponseBodyAdvice<Object> {
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        if(body instanceof EcommerceAPIResponse && !((EcommerceAPIResponse) body).getErrors().isEmpty()){
+        // Ha már EcommerceAPIResponse, ne csomagoljuk újra
+        if (body instanceof EcommerceAPIResponse) {
             return body;
         }
+
+        // Ha a válasz null, akkor egy alapértelmezett üzenetet adunk vissza
+        if (body == null) {
+            return new EcommerceAPIResponse("Nincs adat a válaszban.");
+        }
+
+        // Ha a válasz típusa String, akkor JSON-be kell csomagolni, különben String maradna
+        if (body instanceof String) {
+            return new EcommerceAPIResponse(body);
+        }
+
+        // Ha a válasz bináris adat (pl. fájl letöltés), akkor ne csomagoljuk JSON-be
+        if (body instanceof byte[]) {
+            return body;
+        }
+
+        // Alapértelmezett csomagolás minden egyéb válaszra
         return new EcommerceAPIResponse(body);
     }
 }

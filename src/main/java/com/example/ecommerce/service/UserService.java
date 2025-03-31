@@ -11,6 +11,8 @@ import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
 import com.example.ecommerce.response.AuthResponse;
 import com.example.ecommerce.security.jwt.JwtUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,17 +45,27 @@ public class UserService {
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        return userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username);
+        if (user == null) throw new EcommerceApplicationException("Nincs bejelentkezve felhasználó!");
+        return user;
     }
 
-    public AuthResponse signin(SigninRequest loginRequest) {
+    public User signin(SigninRequest loginRequest, HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateToken(authentication);
-            return new AuthResponse(jwt);
+            Cookie cookie = new Cookie("jwt", jwt);
+            cookie.setHttpOnly(true);  // Csak szerver férhet hozzá
+            cookie.setSecure(true); // HTTPS esetén kell
+            cookie.setPath("/"); // Az egész alkalmazásra érvényes
+            // Ha csak sessionig akarod tárolni, akkor ezt NE állítsd be:
+            // cookie.setMaxAge(60 * 60 * 24); // Ha akarod, itt állíthatod be a cookie érvényességi idejét
+
+            response.addCookie(cookie);
+            return userRepository.findByUsername(loginRequest.getUsername());
         } catch (AuthenticationException authenticationException) {
             throw new InvalidCredentialsException("Hibás felhasználónév vagy jelszó!");
         }
@@ -81,4 +93,16 @@ public class UserService {
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található felhasználó."));
     }
+
+    public void logout(HttpServletResponse response) {
+        SecurityContextHolder.clearContext();
+
+        Cookie cookie = new Cookie("jwt", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
 }

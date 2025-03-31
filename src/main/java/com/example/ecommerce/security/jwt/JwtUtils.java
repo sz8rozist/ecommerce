@@ -1,5 +1,7 @@
 package com.example.ecommerce.security.jwt;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.example.ecommerce.security.user.EcommerceUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -28,38 +30,37 @@ public class JwtUtils {
 
         List<String> roles = userDetails.getAuthorities()
                 .stream()
-                .map(GrantedAuthority::getAuthority).toList();
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .claim("id", userDetails.getId())
-                .claim("roles", roles)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + expirationTime))
-                .signWith(key(), SignatureAlgorithm.HS256).compact();
-    }
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
-    private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        // Az Auth0 JWT könyvtár használatával történő token generálás
+        Algorithm algorithm = Algorithm.HMAC256(jwtSecret); // Az aláírási algoritmus
+
+        return JWT.create()
+                .withSubject(userDetails.getUsername())
+                .withClaim("id", userDetails.getId())
+                .withClaim("roles", roles)
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime)) // lejárat
+                .sign(algorithm); // Aláírás
     }
 
     public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key())
-                .build()
-                .parseClaimsJws(token)
-                .getBody().getSubject();
+        // Token dekódolása és a felhasználónév visszaadása
+        return JWT.decode(token).getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key())
+            // Az Auth0 JWT könyvtár nem rendelkezik beépített validálással, ezért manuálisan kell validálni
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+            JWT.require(algorithm)
                     .build()
-                    .parseClaimsJws(token);
+                    .verify(token); // A token érvényesítése
+
             return true;
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
-                 IllegalArgumentException e) {
-            throw new JwtException(e.getMessage());
+        } catch (Exception e) {
+            throw new JwtException("Invalid JWT token: " + e.getMessage());
         }
     }
 }
