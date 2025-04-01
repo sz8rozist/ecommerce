@@ -42,7 +42,13 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<EcommerceAPIResponse> handleInvalidArgumentException(InvalidCredentialsException exception) {
-        return ResponseEntity.badRequest().body(new EcommerceAPIResponse(exception.getMessage()));
+    public ResponseEntity<EcommerceAPIResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        Map<String, String> errors = new HashMap<>();
+        if (ex.getField() == null) {
+            errors.put("hiba", ex.getMessage());
+        }
+        errors.put(ex.getField(), ex.getMessage());
+        EcommerceAPIResponse response = new EcommerceAPIResponse(errors);
+        return ResponseEntity.badRequest().body(response);
     }
 }

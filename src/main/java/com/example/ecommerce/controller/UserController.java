@@ -20,8 +20,8 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/signin")
-    public User signin(@RequestBody @Valid SigninRequest loginRequest, HttpServletResponse response) {
-        return userService.signin(loginRequest, response);
+    public void signin(@RequestBody @Valid SigninRequest loginRequest, HttpServletResponse response) {
+        userService.signin(loginRequest, response);
     }
 
     @PostMapping("/signup")

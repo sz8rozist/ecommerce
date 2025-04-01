@@ -50,24 +50,31 @@ public class UserService {
         return user;
     }
 
-    public User signin(SigninRequest loginRequest, HttpServletResponse response) {
+    public void signin(SigninRequest loginRequest, HttpServletResponse response) {
         try {
-            Authentication authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(), loginRequest.getPassword()));
+            User user = userRepository.findByUsername(loginRequest.getUsername());
+            if (user == null) {
+                throw new InvalidCredentialsException("Hibás felhasználónév!", "username");
+            }
+            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                throw new InvalidCredentialsException("Hibás jelszó!", "password");
+            }
+
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // JWT token generálása és beállítása cookie-ként
             String jwt = jwtUtils.generateToken(authentication);
             Cookie cookie = new Cookie("jwt", jwt);
-            cookie.setHttpOnly(true);  // Csak szerver férhet hozzá
-            cookie.setSecure(true); // HTTPS esetén kell
-            cookie.setPath("/"); // Az egész alkalmazásra érvényes
-            // Ha csak sessionig akarod tárolni, akkor ezt NE állítsd be:
-            // cookie.setMaxAge(60 * 60 * 24); // Ha akarod, itt állíthatod be a cookie érvényességi idejét
-
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
             response.addCookie(cookie);
-            return userRepository.findByUsername(loginRequest.getUsername());
-        } catch (AuthenticationException authenticationException) {
-            throw new InvalidCredentialsException("Hibás felhasználónév vagy jelszó!");
+
+        } catch (AuthenticationException e) {
+            throw new InvalidCredentialsException("Hibás belépési adatok!"); // Általános hibaüzenet
         }
     }
 
