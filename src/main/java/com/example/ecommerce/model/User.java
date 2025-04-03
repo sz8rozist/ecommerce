@@ -29,4 +29,6 @@ public class User {
     @JsonIgnoreProperties({"users"})
     private List<Cart> carts;
 
+    private String resetToken;
+
 }

@@ -3,11 +3,9 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.model.User;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
-import com.example.ecommerce.response.AuthResponse;
 import com.example.ecommerce.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +14,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 @RestController
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/signin")
     public void signin(@RequestBody @Valid SigninRequest loginRequest, HttpServletResponse response) {
@@ -48,4 +49,15 @@ public class UserController {
     public void logout(HttpServletResponse response) {
         userService.logout(response);
     }
+
+    @PostMapping("/forgot-password")
+    public void forgotPassword(@RequestParam String email) {
+        userService.forgotPassword(email);
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        userService.resetPassword(token, newPassword);
+    }
+
 }

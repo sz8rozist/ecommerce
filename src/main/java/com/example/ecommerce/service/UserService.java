@@ -9,11 +9,14 @@ import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
-import com.example.ecommerce.response.AuthResponse;
 import com.example.ecommerce.security.jwt.JwtUtils;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -33,13 +37,15 @@ public class UserService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final JavaMailSender mailSender;
 
-    public UserService(UserRepository userRepository, AuthenticationManager authenticationManager, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository, AuthenticationManager authenticationManager, JwtUtils jwtUtils, PasswordEncoder passwordEncoder, RoleRepository roleRepository, JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.mailSender = mailSender;
     }
 
     public User getAuthenticatedUser() {
@@ -110,6 +116,47 @@ public class UserService {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
+    }
+
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new EntityNotFoundException("Nem található felhasználó ezzel az e-mail címmel.");
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        userRepository.save(user);
+
+        sendResetEmail(user.getEmail(), token);
+    }
+
+    private void sendResetEmail(String email, String token) {
+        String resetUrl = "http://localhost:8080/user/reset-password?token=" + token;
+        String subject = "Jelszó-visszaállítás";
+        String body = "Kérlek kattints az alábbi linkre a jelszavad visszaállításához: <a href=\"" + resetUrl + "\">Visszaállítás</a>";
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(email);
+            helper.setSubject(subject);
+            helper.setText(body, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new EcommerceApplicationException("");
+        }
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetToken(token);
+        if (user == null) {
+            throw new EntityNotFoundException("Érvénytelen token.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        userRepository.save(user);
     }
 
 }
