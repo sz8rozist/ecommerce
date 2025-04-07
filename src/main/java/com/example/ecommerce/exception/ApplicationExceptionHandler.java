@@ -41,6 +41,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return new ResponseEntity<>(new EcommerceAPIResponse(exception.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UnathorizedException.class)
+    public ResponseEntity<EcommerceAPIResponse> handleUnathorizedException(UnathorizedException exception) {
+        return new ResponseEntity<>(new EcommerceAPIResponse(exception.getMessage()), HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<EcommerceAPIResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         Map<String, String> errors = new HashMap<>();

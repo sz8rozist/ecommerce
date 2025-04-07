@@ -3,6 +3,7 @@ package com.example.ecommerce.service;
 import com.example.ecommerce.exception.EcommerceApplicationException;
 import com.example.ecommerce.exception.EntityNotFoundException;
 import com.example.ecommerce.exception.InvalidCredentialsException;
+import com.example.ecommerce.exception.UnathorizedException;
 import com.example.ecommerce.model.Role;
 import com.example.ecommerce.model.User;
 import com.example.ecommerce.repository.RoleRepository;
@@ -50,9 +51,18 @@ public class UserService {
 
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            throw new UnathorizedException("Nincs bejelentkezve felhasználó!");
+        }
+
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
-        if (user == null) throw new EcommerceApplicationException("Nincs bejelentkezve felhasználó!");
+
+        if (user == null) {
+            throw new UnathorizedException("A felhasználó nem található az adatbázisban!");
+        }
+
         return user;
     }
 
