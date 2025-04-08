@@ -17,10 +17,6 @@ public class EcommerceAPIResponse {
     private Object data;
     private String message;
 
-    public EcommerceAPIResponse(Object data) {
-        this.data = data;
-    }
-
     public EcommerceAPIResponse(Map<String, String> errors) {
         this.errors = errors;
     }

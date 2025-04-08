@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.service.CartService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +18,8 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public Cart addToCart(@RequestParam Long productId, @RequestParam int quantity) {
-        return cartService.addToCart(productId, quantity);
+    public ResponseEntity<Cart> addToCart(@RequestParam Long productId, @RequestParam int quantity) {
+        Cart cart = cartService.addToCart(productId, quantity);
+        return ResponseEntity.ok(cart);
     }
 }

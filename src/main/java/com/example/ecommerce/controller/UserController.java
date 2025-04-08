@@ -8,8 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 @RequestMapping("/user")
 @RestController
@@ -21,28 +24,34 @@ public class UserController {
     }
 
     @PostMapping("/signin")
-    public void signin(@RequestBody @Valid SigninRequest loginRequest, HttpServletResponse response) {
+    public void signin(@Valid @RequestBody SigninRequest loginRequest, HttpServletResponse response) {
         userService.signin(loginRequest, response);
     }
 
     @PostMapping("/signup")
-    public User signup(@RequestBody @Valid SignupRequest signupRequest) {
-        return userService.signup(signupRequest);
+    public ResponseEntity<User> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        User user = userService.signup(signupRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @GetMapping("/loggedUser")
-    public User getLoggedUser() {
-        return userService.getAuthenticatedUser();
+    public ResponseEntity<User> getLoggedUser() {
+        User user = userService.getAuthenticatedUser();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .body(user);
     }
 
     @GetMapping("/findAll")
-    public Page<User> findAll(Pageable pageable) {
-        return userService.findAll(pageable);
+    public ResponseEntity<Page<User>> findAll(Pageable pageable) {
+        Page<User> users = userService.findAll(pageable);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/findById/:id")
-    public User findById(@PathVariable Long id) {
-        return userService.findById(id);
+    public ResponseEntity<User> findById(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/logout")
@@ -57,7 +66,7 @@ public class UserController {
 
     @PostMapping("/reset-password")
     public void resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        userService.resetPassword(token, newPassword);
+        //userService.resetPassword(token, newPassword);
     }
 
 }

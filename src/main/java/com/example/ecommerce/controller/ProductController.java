@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.ProductImage;
 import com.example.ecommerce.service.ProductService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,8 @@ public class ProductController {
     }
 
     @PostMapping("/{productId}/upload-image")
-    public ProductImage uploadImage(@PathVariable Long productId, @RequestParam("file") MultipartFile file) throws IOException {
-        return productService.uploadImage(productId, file);
+    public ResponseEntity<ProductImage> uploadImage(@PathVariable Long productId, @RequestParam("file") MultipartFile file) throws IOException {
+        ProductImage productImage = productService.uploadImage(productId, file);
+        return ResponseEntity.ok().body(productImage);
     }
 }

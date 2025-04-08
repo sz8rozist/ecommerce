@@ -26,8 +26,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-        EcommerceAPIResponse response = new EcommerceAPIResponse(errors);
-        return ResponseEntity.badRequest().body(response);
+        return new ResponseEntity<>(new EcommerceAPIResponse(errors), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EcommerceApplicationException.class)
