@@ -113,15 +113,8 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található felhasználó."));
     }
 
-    public void logout(HttpServletResponse response) {
+    public void logout() {
         SecurityContextHolder.clearContext();
-
-        Cookie cookie = new Cookie("jwt", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
     }
 
     public void forgotPassword(String email) {

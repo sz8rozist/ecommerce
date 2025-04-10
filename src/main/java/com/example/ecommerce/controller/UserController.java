@@ -8,7 +8,9 @@ import com.example.ecommerce.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,7 +47,12 @@ public class UserController {
     }
 
     @GetMapping("/findAll")
-    public ResponseEntity<Page<User>> findAll(Pageable pageable) {
+    public ResponseEntity<Page<User>> findAll(@RequestParam(required = false, defaultValue = "0") int page,
+                                              @RequestParam(required = false, defaultValue = "10") int size,
+                                              @RequestParam(required = false, defaultValue = "id") String sortBy,
+                                              @RequestParam(required = false, defaultValue = "asc") String sortOrder) {
+        Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         Page<User> users = userService.findAll(pageable);
         return ResponseEntity.ok(users);
     }
@@ -57,8 +64,8 @@ public class UserController {
     }
 
     @GetMapping("/logout")
-    public void logout(HttpServletResponse response) {
-        userService.logout(response);
+    public void logout() {
+        userService.logout();
     }
 
     @PostMapping("/forgot-password")
