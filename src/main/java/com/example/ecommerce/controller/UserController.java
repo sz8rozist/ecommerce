@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.model.User;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -24,8 +25,9 @@ public class UserController {
     }
 
     @PostMapping("/signin")
-    public void signin(@Valid @RequestBody SigninRequest loginRequest, HttpServletResponse response) {
-        userService.signin(loginRequest, response);
+    public ResponseEntity<JwtTokenResponse> signin(@Valid @RequestBody SigninRequest loginRequest) {
+        JwtTokenResponse jwtTokenResponse = userService.signin(loginRequest);
+        return ResponseEntity.ok(jwtTokenResponse);
     }
 
     @PostMapping("/signup")

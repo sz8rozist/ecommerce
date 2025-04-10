@@ -34,8 +34,10 @@ public class EcommerceConfig {
     private JwtAuthEntryPoint jwtAuthEntryPoint;
     @Autowired
     private AuthTokenFilter authTokenFilter;
-    private static final List<String> SECURED_URLS =
-            List.of("/api/v1/carts/**", "/api/v1/cartItems/**");
+
+    private static final List<String> PUBLIC_URLS =
+            List.of("/user/signin", "/user/signup", "user/loggedUser", "/swagger-ui/**", "/v3/api-docs/**");
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -58,11 +60,15 @@ public class EcommerceConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthEntryPoint))
-                .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(SECURED_URLS.toArray(String[]::new)).authenticated()
-                        .anyRequest().permitAll());
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PUBLIC_URLS.toArray(String[]::new)).permitAll()
+                        .anyRequest().authenticated()
+                );
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

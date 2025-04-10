@@ -10,6 +10,7 @@ import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.security.jwt.JwtUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -66,7 +67,7 @@ public class UserService {
         return user;
     }
 
-    public void signin(SigninRequest loginRequest, HttpServletResponse response) {
+    public JwtTokenResponse signin(SigninRequest loginRequest) {
         try {
             User user = userRepository.findByUsername(loginRequest.getUsername());
             if (user == null) {
@@ -83,12 +84,7 @@ public class UserService {
 
             // JWT token generálása és beállítása cookie-ként
             String jwt = jwtUtils.generateToken(authentication);
-            Cookie cookie = new Cookie("jwt", jwt);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            response.addCookie(cookie);
-
+            return new JwtTokenResponse(jwt);
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Hibás belépési adatok!"); // Általános hibaüzenet
         }
