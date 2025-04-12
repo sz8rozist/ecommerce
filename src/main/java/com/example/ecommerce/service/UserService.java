@@ -11,13 +11,16 @@ import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.request.UserFilter;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.security.jwt.JwtUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -106,8 +109,34 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public Page<User> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public Page<User> findAll(Pageable pageable, UserFilter filter) {
+        if (filter == null || filter.getUsername() == null || filter.getUsername().isEmpty()) {
+            return userRepository.findAll(pageable);
+        }
+        return userRepository.findAll(filterPredicate(filter), pageable);
+    }
+
+    public Specification<User> filterPredicate(UserFilter filter) {
+        return (root, query, criteriaBuilder) -> {
+            Predicate predicate = criteriaBuilder.conjunction();
+
+            if (filter.getUsername() != null && !filter.getUsername().isEmpty()) {
+                // Szűrés a felhasználónév alapján
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(root.get("username"), "%" + filter.getUsername() + "%"));
+            }
+
+            /*if (filter.getEmail() != null && !filter.getEmail().isEmpty()) {
+                // Szűrés az email alapján
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(root.get("email"), "%" + filter.getEmail() + "%"));
+            }
+
+            if (filter.getAge() != null) {
+                // Szűrés az életkor alapján
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("age"), filter.getAge()));
+            }*/
+
+            return predicate;
+        };
     }
 
     public User findById(Long id) {
@@ -160,5 +189,10 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetToken(null);
         userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(()->  new EntityNotFoundException("Nem található felhasználó"));
+        userRepository.delete(user);
     }
 }

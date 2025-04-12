@@ -8,6 +8,22 @@ public class PasswordMatchValidator implements ConstraintValidator<PasswordMatch
 
     @Override
     public boolean isValid(ResetPasswordRequest request, ConstraintValidatorContext context) {
-        return request.getNewPassword() != null && request.getNewPassword().equals(request.getNewPasswordConfirm());
+        if (request == null) {
+            return true; // más validátor fogja elkapni, pl. @NotNull
+        }
+
+        if (request.getNewPassword() == null || request.getNewPasswordConfirm() == null) {
+            return false;
+        }
+
+        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate("A két jelszó nem egyezik!")
+                    .addPropertyNode("newPasswordConfirm")
+                    .addConstraintViolation();
+            return false;
+        }
+
+        return true;
     }
 }

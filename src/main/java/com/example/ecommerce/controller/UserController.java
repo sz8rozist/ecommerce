@@ -4,9 +4,9 @@ import com.example.ecommerce.model.User;
 import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.request.UserFilter;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,14 +47,16 @@ public class UserController {
                 .body(user);
     }
 
-    @GetMapping("/findAll")
+    @GetMapping(value = "/findAll")
     public ResponseEntity<Page<User>> findAll(@RequestParam(required = false, defaultValue = "0") int page,
                                               @RequestParam(required = false, defaultValue = "10") int size,
+                                              @RequestParam(required = false) String username,
                                               @RequestParam(required = false, defaultValue = "id") String sortBy,
-                                              @RequestParam(required = false, defaultValue = "asc") String sortOrder) {
+                                              @RequestParam(required = false, defaultValue = "asc") String sortOrder
+                                             ) {
         Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<User> users = userService.findAll(pageable);
+        Page<User> users = userService.findAll(pageable, new UserFilter(username));
         return ResponseEntity.ok(users);
     }
 
@@ -77,6 +79,12 @@ public class UserController {
     @PostMapping("/reset-password")
     public void resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
         userService.resetPassword(resetPasswordRequest);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@RequestParam Long id) {
+        userService.deleteUser(id);
     }
 
 }
