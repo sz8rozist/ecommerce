@@ -131,7 +131,7 @@ public class UserService {
     }
 
     private void sendResetEmail(String email, String token) {
-        String resetUrl = "http://localhost:8080/user/reset-password?token=" + token;
+        String resetUrl = "http://localhost:4200/reset-password/" + token;
         String subject = "Jelszó-visszaállítás";
         String body = "Kérlek kattints az alábbi linkre a jelszavad visszaállításához: <a href=\"" + resetUrl + "\">Visszaállítás</a>";
 
@@ -143,7 +143,7 @@ public class UserService {
             helper.setText(body, true);
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new EcommerceApplicationException("");
+            throw new EcommerceApplicationException("Hiba történt az email küldés közben!");
         }
     }
 
