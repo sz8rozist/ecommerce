@@ -75,7 +75,7 @@ public class UserController {
 
     @PostMapping("/reset-password")
     public void resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        //userService.resetPassword(token, newPassword);
+        userService.resetPassword(token, newPassword);
     }
 
 }
