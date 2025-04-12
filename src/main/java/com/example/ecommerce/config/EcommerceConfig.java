@@ -37,7 +37,7 @@ public class EcommerceConfig {
     private AuthTokenFilter authTokenFilter;
 
     private static final List<String> PUBLIC_URLS =
-            List.of("/user/signin", "/user/signup", "user/loggedUser", "/swagger-ui/**", "/v3/api-docs/**");
+            List.of("/user/signin", "/user/signup", "user/forgot-password", "user/loggedUser", "/swagger-ui/**", "/v3/api-docs/**");
 
     @Bean
     public PasswordEncoder passwordEncoder() {
