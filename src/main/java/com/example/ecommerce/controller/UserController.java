@@ -1,6 +1,7 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.User;
+import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
@@ -74,8 +75,8 @@ public class UserController {
     }
 
     @PostMapping("/reset-password")
-    public void resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-        userService.resetPassword(token, newPassword);
+    public void resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        userService.resetPassword(resetPasswordRequest);
     }
 
 }

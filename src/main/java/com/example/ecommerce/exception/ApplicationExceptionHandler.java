@@ -31,6 +31,12 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 
     @ExceptionHandler(EcommerceApplicationException.class)
     public ResponseEntity<EcommerceAPIResponse> handleApplicationException(EcommerceApplicationException exception) {
+        if (exception.getField() != null && !exception.getField().isEmpty()) {
+            Map<String, String> errors = new HashMap<>();
+            errors.put(exception.getField(), exception.getMessage());
+            EcommerceAPIResponse response = new EcommerceAPIResponse(errors);
+            return ResponseEntity.badRequest().body(response);
+        }
         return new ResponseEntity<>(new EcommerceAPIResponse(exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 

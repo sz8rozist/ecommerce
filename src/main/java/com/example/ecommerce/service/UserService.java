@@ -8,6 +8,7 @@ import com.example.ecommerce.model.Role;
 import com.example.ecommerce.model.User;
 import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.UserRepository;
+import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
@@ -147,15 +148,17 @@ public class UserService {
         }
     }
 
-    public void resetPassword(String token, String newPassword) {
-        User user = userRepository.findByResetToken(token);
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByResetToken(request.getToken());
         if (user == null) {
             throw new EntityNotFoundException("Érvénytelen token.");
         }
-
-        user.setPassword(passwordEncoder.encode(newPassword));
+        boolean isOldPasswordValid = passwordEncoder.matches(request.getOldPassword(), user.getPassword());
+        if (!isOldPasswordValid) {
+            throw new EcommerceApplicationException("A régi jelszó helytelen.", "oldPassword");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetToken(null);
         userRepository.save(user);
     }
-
 }
