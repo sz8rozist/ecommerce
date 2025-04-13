@@ -10,4 +10,6 @@
     <include file="db/changelog/2025/03/05-user-table.xml"/>
     <include file="db/changelog/2025/03/06-order-table.xml"/>
     <include file="db/changelog/2025/03/07-user-add-reset-token.xml"/>
+    <include file="db/changelog/2025/04/13-01-changelog.xml"/>
+    <include file="db/changelog/2025/04/13-02-changelog.xml"/>
 </databaseChangeLog>
