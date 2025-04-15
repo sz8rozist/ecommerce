@@ -26,6 +26,8 @@ services:
       - "9090:9090"
     volumes:
       - minio_data:/data
+    networks:
+      - ecommerce-network
 
   app:
     image: ecommerce:latest
@@ -43,6 +45,21 @@ services:
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: product-image
+
+  liquibase:
+    image: liquibase/liquibase
+    container_name: liquibase
+    environment:
+      DB_URL: jdbc:mysql://ecommerce-mysql:3306/ecommerce
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+      LIQUIBASE_CHANGELOG: classpath:db/changelog/changelog-master.xml
+    volumes:
+      - ./liquibase/changelog:/liquibase/changelog
+    depends_on:
+      - mysql
+    command: --url=${DB_URL} --username=${DB_USERNAME} --password=${DB_PASSWORD} --changeLogFile=${LIQUIBASE_CHANGELOG} update
 
 volumes:
   mysql_data:
