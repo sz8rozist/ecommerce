@@ -5,6 +5,10 @@ import com.example.ecommerce.model.Product;
 import com.example.ecommerce.model.ProductImage;
 import com.example.ecommerce.repository.ProductImageRepository;
 import com.example.ecommerce.repository.ProductRepository;
+import com.example.ecommerce.request.ProductRequest;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,44 +23,38 @@ import java.util.UUID;
 
 @Service
 public class ProductService {
-    private static final String UPLOAD_DIR = "uploads/products/";
-
     private final ProductRepository productRepository;
 
     private final ProductImageRepository productImageRepository;
 
-    public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository) {
+    private final MinioService minioService;
+
+    public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository, MinioService minioService) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
+        this.minioService = minioService;
     }
 
-    public List<ProductImage> uploadImages(Long productId, MultipartFile[] files) throws IOException {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Termék nem található!"));
+    public Page<Product> findALl(Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
 
-        File uploadDir = new File(UPLOAD_DIR);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();  // ha több szintű mappa van, mkdirs kell
-        }
+    public Product createProduct(ProductRequest productRequest) {
+        Product product = new Product();
+        product.setName(productRequest.getName());
+        product.setPrice(productRequest.getPrice());
 
-        List<ProductImage> savedImages = new ArrayList<>();
+        List<ProductImage> images = new ArrayList<>();
 
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) {
-                continue; // üres fájlokat átugrunk
-            }
-
-            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(UPLOAD_DIR, filename);
-            Files.write(filePath, file.getBytes());
-
+        for (MultipartFile file : productRequest.getImages()) {
+            String imageUrl = minioService.uploadFile(file);
             ProductImage image = new ProductImage();
+            image.setImageUrl(imageUrl);
             image.setProduct(product);
-            image.setImageUrl(filePath.toString());
-
-            savedImages.add(productImageRepository.save(image));
+            images.add(image);
         }
 
-        return savedImages;
+        product.setImages(images);
+        return productRepository.save(product);
     }
 }
