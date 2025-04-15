@@ -186,6 +186,10 @@ public class UserService {
         if (!isOldPasswordValid) {
             throw new EcommerceApplicationException("A régi jelszó helytelen.", "oldPassword");
         }
+
+        if(!request.getNewPassword().equals(request.getNewPasswordConfirm())){
+            throw new EcommerceApplicationException("A két jelszó nem egyezik!", "newPassword");
+        }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetToken(null);
         userRepository.save(user);

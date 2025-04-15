@@ -1,6 +1,5 @@
 package com.example.ecommerce.request;
 
-import com.example.ecommerce.validators.PasswordMatch;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -11,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@PasswordMatch
 public class ResetPasswordRequest {
     private String token;
     @NotBlank(message = "A régi jelszó megadása kötelező.")
