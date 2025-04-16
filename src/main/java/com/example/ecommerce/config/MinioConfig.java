@@ -42,7 +42,8 @@ public class MinioConfig {
             }
             return minioClient;
         } catch (Exception e) {
-            throw new RuntimeException("MinIO konfiguráció közben hiba történt", e);
+           // throw new RuntimeException("MinIO konfiguráció közben hiba történt", e);
         }
+        return null;
     }
 }
