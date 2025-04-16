@@ -9,8 +9,6 @@ services:
       MYSQL_PASSWORD: admin
     ports:
       - "3306:3306"
-    networks:
-      - ecommerce-network
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -26,8 +24,6 @@ services:
       - "9090:9090"
     volumes:
       - minio_data:/data
-    networks:
-      - ecommerce-network
 
   app:
     image: ecommerce:latest
@@ -36,8 +32,6 @@ services:
       - minio
     ports:
       - "8080:8080"
-    networks:
-      - ecommerce-network
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://ecommerce-mysql:3306/ecommerce
       SPRING_DATASOURCE_USERNAME: admin
@@ -47,23 +41,25 @@ services:
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: product-image
 
-  liquibase:
-    image: liquibase/liquibase
-    container_name: liquibase
-    environment:
-      DB_URL: jdbc:mysql://ecommerce-mysql:3306/ecommerce
-      DB_USERNAME: admin
-      DB_PASSWORD: admin
-      LIQUIBASE_CHANGELOG: classpath:db/changelog/changelog-master.xml
+  liquibase-runner:
+    image: maven:3.9.6-eclipse-temurin-17
+    container_name: liquibase-runner
     volumes:
-      - ./liquibase/changelog:/liquibase/changelog
+      - .:/app
+    working_dir: /app
     depends_on:
       - mysql
-    command: --url=${DB_URL} --username=${DB_USERNAME} --password=${DB_PASSWORD} --changeLogFile=${LIQUIBASE_CHANGELOG} update
+    command: >
+      mvn liquibase:update
+      -D liquibase.url=jdbc:mysql://ecommerce-mysql:3306/ecommerce
+      -D liquibase.username=admin
+      -D liquibase.password=admin
+      -D liquibase.changeLogFile=src/main/resources/db/changelog/changelog-master.xml
+      -D liquibase.driver=com.mysql.cj.jdbc.Driver
 
 volumes:
   mysql_data:
   minio_data:
 networks:
-  ecommerce-network:
-    driver: bridge
+  default:
+    name: ecommerce-network
