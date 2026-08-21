@@ -2,9 +2,9 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.PaymentMethod;
 import com.example.ecommerce.service.PaymentMethodService;
-import org.hibernate.query.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,18 +19,26 @@ public class PaymentMethodController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PaymentMethod>> findAll() {
+    public ResponseEntity<List<PaymentMethod>> findAllPaymentMethods() {
         return ResponseEntity.ok(paymentMethodService.findAll());
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping
+    public ResponseEntity<PaymentMethod> createPaymentMethod(@RequestBody PaymentMethod paymentMethod) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentMethodService.create(paymentMethod));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void deletePaymentMethod(@PathVariable Long id) {
         paymentMethodService.delete(id);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping
-    public ResponseEntity<PaymentMethod> update(@RequestBody PaymentMethod paymentMethod) {
+    public ResponseEntity<PaymentMethod> updatePaymentMethod(@RequestBody PaymentMethod paymentMethod) {
         return ResponseEntity.ok(paymentMethodService.update(paymentMethod));
     }
 }

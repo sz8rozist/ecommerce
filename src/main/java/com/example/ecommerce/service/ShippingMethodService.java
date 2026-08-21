@@ -19,6 +19,11 @@ public class ShippingMethodService {
         return shippingMethodRepository.findAll();
     }
 
+    public ShippingMethod create(ShippingMethod shippingMethod) {
+        shippingMethod.setId(null);
+        return shippingMethodRepository.save(shippingMethod);
+    }
+
     public void delete(Long id) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található szállítási mód!"));
         shippingMethodRepository.delete(shippingMethod);

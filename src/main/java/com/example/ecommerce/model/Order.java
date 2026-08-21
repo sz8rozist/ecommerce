@@ -20,9 +20,8 @@ public class Order {
 
     private String orderAddress;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
-    @JoinTable(name = "orders_item", joinColumns = @JoinColumn(name = "orders_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "cart_id", referencedColumnName = "id"))
-    private List<Cart> carts;
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -31,4 +30,12 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false) // Új mező: rendeléshez tartozó felhasználó
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "shipping_method_id")
+    private ShippingMethod shippingMethod;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_method_id")
+    private PaymentMethod paymentMethod;
 }

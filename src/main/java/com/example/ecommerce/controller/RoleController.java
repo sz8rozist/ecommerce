@@ -1,7 +1,6 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.Role;
-import com.example.ecommerce.model.User;
 import com.example.ecommerce.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,7 @@ public class RoleController {
     private RoleService roleService;
 
     @GetMapping()
-    public ResponseEntity<List<Role>> getLoggedUser() {
+    public ResponseEntity<List<Role>> findAllRoles() {
         return ResponseEntity.ok(roleService.findAll());
     }
 }

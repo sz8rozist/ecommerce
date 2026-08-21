@@ -32,7 +32,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -100,12 +99,9 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        List<Role> roles = new ArrayList<>();
-        roleRepository.findByName(request.getRole()).ifPresent(roles::add);
-        if (roles.isEmpty()) {
-            throw new EcommerceApplicationException("Nem található jogosultság!");
-        }
-        user.setRoles(roles);
+        Role userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new EcommerceApplicationException("Az alapértelmezett felhasználói jogosultság nem található!"));
+        user.setRoles(List.of(userRole));
         return userRepository.save(user);
     }
 

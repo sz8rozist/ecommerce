@@ -5,6 +5,7 @@ import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,20 @@ public class MinioService {
         } catch (Exception e) {
             log.error("Hiba történt a minioba való feltöltés közbe!", e);
             throw new RuntimeException("Hiba történt a képfeltöltés közben!");
+        }
+    }
+
+    public void deleteFile(String fileName) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Hiba történt a minio fájl törlése közben!", e);
+            throw new RuntimeException("Hiba történt a kép törlése közben!");
         }
     }
 

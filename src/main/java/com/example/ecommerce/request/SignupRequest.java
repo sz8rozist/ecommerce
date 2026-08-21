@@ -1,7 +1,5 @@
 package com.example.ecommerce.request;
 
-import com.example.ecommerce.model.Role;
-import com.example.ecommerce.validators.Exists;
 import com.example.ecommerce.validators.UniqueEmail;
 import com.example.ecommerce.validators.UniqueUsername;
 import jakarta.validation.constraints.Email;
@@ -26,7 +24,4 @@ public class SignupRequest {
     @UniqueEmail
     @Email(message = "Érvénytelen email cím formátum.")
     private String email;
-    @NotBlank(message = "A jogosultság megadása kötelező.")
-    @Exists(entity = Role.class, field = "name")
-    private String role;
 }

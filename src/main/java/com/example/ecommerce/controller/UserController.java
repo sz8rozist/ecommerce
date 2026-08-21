@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/user")
@@ -47,6 +48,7 @@ public class UserController {
                 .body(user);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(value = "/findAll")
     public ResponseEntity<Page<User>> findAll(@RequestParam(required = false, defaultValue = "0") int page,
                                               @RequestParam(required = false, defaultValue = "10") int size,
@@ -60,6 +62,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/findById/:id")
     public ResponseEntity<User> findById(@PathVariable Long id) {
         User user = userService.findById(id);
@@ -81,6 +84,7 @@ public class UserController {
         userService.resetPassword(resetPasswordRequest);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@RequestParam Long id) {

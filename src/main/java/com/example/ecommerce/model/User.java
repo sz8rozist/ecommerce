@@ -1,12 +1,12 @@
 package com.example.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 @Entity
 @Data
@@ -17,6 +17,7 @@ public class User {
     private Long id;
 
     private String username;
+    @JsonIgnore
     private String password;
     private String email;
 
@@ -25,10 +26,7 @@ public class User {
     @JsonIgnoreProperties({"users"})
     private Collection<Role> roles = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"users"})
-    private List<Cart> carts;
-
+    @JsonIgnore
     private String resetToken;
 
 }

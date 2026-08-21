@@ -13,4 +13,7 @@
     <include file="db/changelog/2025/04/13-01-changelog.xml"/>
     <include file="db/changelog/2025/04/13-02-changelog.xml"/>
     <include file="db/changelog/2025/04/product-table-add-description.xml"/>
+    <include file="db/changelog/2025/08/21-01-cart-user-and-order-checkout.xml"/>
+    <include file="db/changelog/2025/08/21-02-add-user-role.xml"/>
+    <include file="db/changelog/2025/08/21-03-order-item-table.xml"/>
 </databaseChangeLog>

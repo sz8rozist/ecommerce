@@ -20,6 +20,11 @@ public class PaymentMethodService {
         return paymetnMethodRepository.findAll();
     }
 
+    public PaymentMethod create(PaymentMethod paymentMethod) {
+        paymentMethod.setId(null);
+        return paymetnMethodRepository.save(paymentMethod);
+    }
+
     public void delete(Long id) {
         PaymentMethod paymentMethod = paymetnMethodRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található fizetési mód!"));
         paymetnMethodRepository.delete(paymentMethod);

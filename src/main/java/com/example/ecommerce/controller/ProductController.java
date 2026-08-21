@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.model.ProductImage;
 import com.example.ecommerce.model.User;
+import com.example.ecommerce.request.ProductFilter;
 import com.example.ecommerce.request.ProductRequest;
 import com.example.ecommerce.request.UserFilter;
 import com.example.ecommerce.response.ProductResponseDTO;
@@ -17,8 +18,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,21 +38,24 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Product>> getAllProducts(@RequestParam(required = false, defaultValue = "0") int page,
+    public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(@RequestParam(required = false, defaultValue = "0") int page,
                                                         @RequestParam(required = false, defaultValue = "10") int size,
+                                                        @RequestParam(required = false) String name,
                                                         @RequestParam(required = false, defaultValue = "id") String sortBy,
                                                         @RequestParam(required = false, defaultValue = "asc") String sortOrder) {
 
         Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        return ResponseEntity.ok(productService.findALl(pageable));
+        return ResponseEntity.ok(productService.findALl(pageable, new ProductFilter(name)));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest product) {
         return ResponseEntity.ok(productService.createProduct(product));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Product> uploadImages(@PathVariable Long id, @RequestPart("files") List<MultipartFile> files) {
         return ResponseEntity.ok(productService.uploadProductImages(id, files));
@@ -58,5 +64,18 @@ public class ProductController {
     @GetMapping(value = "/{id}")
     public ResponseEntity<ProductResponseDTO> getProduct(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest product) {
+        return ResponseEntity.ok(productService.updateProduct(id, product));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
     }
 }
