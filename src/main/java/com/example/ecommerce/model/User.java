@@ -29,4 +29,6 @@ public class User {
     @JsonIgnore
     private String resetToken;
 
+    private String address;
+
 }

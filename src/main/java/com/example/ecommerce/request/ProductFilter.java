@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductFilter {
     private String name;
+    private Long categoryId;
 }

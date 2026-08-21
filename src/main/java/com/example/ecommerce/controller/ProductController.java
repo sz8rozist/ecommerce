@@ -41,12 +41,13 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(@RequestParam(required = false, defaultValue = "0") int page,
                                                         @RequestParam(required = false, defaultValue = "10") int size,
                                                         @RequestParam(required = false) String name,
+                                                        @RequestParam(required = false) Long categoryId,
                                                         @RequestParam(required = false, defaultValue = "id") String sortBy,
                                                         @RequestParam(required = false, defaultValue = "asc") String sortOrder) {
 
         Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        return ResponseEntity.ok(productService.findALl(pageable, new ProductFilter(name)));
+        return ResponseEntity.ok(productService.findALl(pageable, new ProductFilter(name, categoryId)));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

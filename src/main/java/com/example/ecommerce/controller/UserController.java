@@ -4,6 +4,7 @@ import com.example.ecommerce.model.User;
 import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.request.UpdateProfileRequest;
 import com.example.ecommerce.request.UserFilter;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.service.UserService;
@@ -53,12 +54,13 @@ public class UserController {
     public ResponseEntity<Page<User>> findAll(@RequestParam(required = false, defaultValue = "0") int page,
                                               @RequestParam(required = false, defaultValue = "10") int size,
                                               @RequestParam(required = false) String username,
+                                              @RequestParam(required = false) String role,
                                               @RequestParam(required = false, defaultValue = "id") String sortBy,
                                               @RequestParam(required = false, defaultValue = "asc") String sortOrder
                                              ) {
         Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<User> users = userService.findAll(pageable, new UserFilter(username));
+        Page<User> users = userService.findAll(pageable, new UserFilter(username, role));
         return ResponseEntity.ok(users);
     }
 
@@ -95,6 +97,12 @@ public class UserController {
     @PutMapping("/{id}/admin-role")
     public ResponseEntity<User> setAdminRole(@PathVariable Long id, @RequestParam boolean grant) {
         return ResponseEntity.ok(userService.setAdminRole(id, grant));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<User> updateProfile(@RequestBody UpdateProfileRequest request) {
+        User user = userService.getAuthenticatedUser();
+        return ResponseEntity.ok(userService.updateProfile(user, request));
     }
 
 }

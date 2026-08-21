@@ -1,0 +1,21 @@
+package com.example.ecommerce.repository;
+
+import com.example.ecommerce.model.Review;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+    Page<Review> findByProductIdOrderByCreatedAtDesc(Long productId, Pageable pageable);
+
+    boolean existsByProductIdAndUserId(Long productId, Long userId);
+
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
+    Double findAverageRatingByProductId(@Param("productId") Long productId);
+
+    long countByProductId(Long productId);
+
+    void deleteByProductId(Long productId);
+}

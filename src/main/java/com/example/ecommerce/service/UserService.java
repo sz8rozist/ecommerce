@@ -11,6 +11,7 @@ import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.request.ResetPasswordRequest;
 import com.example.ecommerce.request.SigninRequest;
 import com.example.ecommerce.request.SignupRequest;
+import com.example.ecommerce.request.UpdateProfileRequest;
 import com.example.ecommerce.request.UserFilter;
 import com.example.ecommerce.security.jwt.JwtTokenResponse;
 import com.example.ecommerce.security.jwt.JwtUtils;
@@ -108,7 +109,9 @@ public class UserService {
     }
 
     public Page<User> findAll(Pageable pageable, UserFilter filter) {
-        if (filter == null || filter.getUsername() == null || filter.getUsername().isEmpty()) {
+        boolean hasUsername = filter != null && filter.getUsername() != null && !filter.getUsername().isEmpty();
+        boolean hasRole = filter != null && filter.getRole() != null && !filter.getRole().isEmpty();
+        if (!hasUsername && !hasRole) {
             return userRepository.findAll(pageable);
         }
         return userRepository.findAll(filterPredicate(filter), pageable);
@@ -123,15 +126,12 @@ public class UserService {
                 predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(root.get("username"), "%" + filter.getUsername() + "%"));
             }
 
-            /*if (filter.getEmail() != null && !filter.getEmail().isEmpty()) {
-                // Szűrés az email alapján
-                predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(root.get("email"), "%" + filter.getEmail() + "%"));
+            if (filter.getRole() != null && !filter.getRole().isEmpty()) {
+                // Szűrés a szerepkör alapján
+                query.distinct(true);
+                predicate = criteriaBuilder.and(predicate,
+                        criteriaBuilder.equal(root.join("roles").get("name"), filter.getRole()));
             }
-
-            if (filter.getAge() != null) {
-                // Szűrés az életkor alapján
-                predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("age"), filter.getAge()));
-            }*/
 
             return predicate;
         };
@@ -210,6 +210,11 @@ public class UserService {
             roles.removeIf(role -> "ADMIN".equals(role.getName()));
         }
         user.setRoles(roles);
+        return userRepository.save(user);
+    }
+
+    public User updateProfile(User user, UpdateProfileRequest request) {
+        user.setAddress(request.getAddress());
         return userRepository.save(user);
     }
 }

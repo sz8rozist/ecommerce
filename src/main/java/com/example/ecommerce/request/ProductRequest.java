@@ -18,4 +18,7 @@ public class ProductRequest {
     private Integer price;
     @NotBlank(message = "A termék leírásának megadása kötelező.")
     private String description;
+    private Long categoryId;
+    private Integer stockQuantity;
+    private Integer minStockThreshold;
 }

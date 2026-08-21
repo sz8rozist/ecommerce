@@ -38,4 +38,10 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
+
+    private String couponCode;
+
+    private double discountAmount;
+
+    private String trackingNumber;
 }

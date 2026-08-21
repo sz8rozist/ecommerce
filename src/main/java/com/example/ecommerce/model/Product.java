@@ -18,4 +18,12 @@ public class Product {
     private String description;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    private int stockQuantity;
+
+    private int minStockThreshold;
 }

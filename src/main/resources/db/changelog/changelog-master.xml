@@ -17,4 +17,10 @@
     <include file="db/changelog/2025/08/21-02-add-user-role.xml"/>
     <include file="db/changelog/2025/08/21-03-order-item-table.xml"/>
     <include file="db/changelog/2025/08/21-04-seed-admin-user.xml"/>
+    <include file="db/changelog/2025/08/21-05-category-table.xml"/>
+    <include file="db/changelog/2025/08/21-06-discount-and-coupon.xml"/>
+    <include file="db/changelog/2025/08/21-07-product-stock.xml"/>
+    <include file="db/changelog/2025/08/21-08-tracking-settings-support.xml"/>
+    <include file="db/changelog/2025/08/21-09-user-address.xml"/>
+    <include file="db/changelog/2025/08/21-10-review-table.xml"/>
 </databaseChangeLog>

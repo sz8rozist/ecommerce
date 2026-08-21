@@ -19,6 +19,8 @@ public class OrderItem {
 
     private int quantity;
 
+    private double unitPrice;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
     @JsonIgnore

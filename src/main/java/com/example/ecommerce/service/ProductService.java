@@ -2,12 +2,17 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.exception.EcommerceApplicationException;
 import com.example.ecommerce.exception.EntityNotFoundException;
+import com.example.ecommerce.model.Category;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.model.ProductImage;
+import com.example.ecommerce.model.Discount;
 import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.repository.CategoryRepository;
+import com.example.ecommerce.repository.DiscountRepository;
 import com.example.ecommerce.repository.OrderItemRepository;
 import com.example.ecommerce.repository.ProductImageRepository;
 import com.example.ecommerce.repository.ProductRepository;
+import com.example.ecommerce.repository.ReviewRepository;
 import com.example.ecommerce.request.ProductFilter;
 import com.example.ecommerce.request.ProductRequest;
 import com.example.ecommerce.response.EcommerceApiMapper;
@@ -32,23 +37,35 @@ public class ProductService {
 
     private final OrderItemRepository orderItemRepository;
 
+    private final CategoryRepository categoryRepository;
+
+    private final DiscountRepository discountRepository;
+
+    private final ReviewRepository reviewRepository;
+
     private final EcommerceApiMapper mapper;
 
     private final MinioService minioService;
 
     public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository,
                            CartRepository cartRepository, OrderItemRepository orderItemRepository,
-                           EcommerceApiMapper mapper, MinioService minioService) {
+                           CategoryRepository categoryRepository, DiscountRepository discountRepository,
+                           ReviewRepository reviewRepository, EcommerceApiMapper mapper, MinioService minioService) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
+        this.categoryRepository = categoryRepository;
+        this.discountRepository = discountRepository;
+        this.reviewRepository = reviewRepository;
         this.mapper = mapper;
         this.minioService = minioService;
     }
 
     public Page<ProductResponseDTO> findALl(Pageable pageable, ProductFilter filter) {
-        Page<Product> products = (filter == null || filter.getName() == null || filter.getName().isEmpty())
+        boolean noFilters = filter == null
+                || ((filter.getName() == null || filter.getName().isEmpty()) && filter.getCategoryId() == null);
+        Page<Product> products = noFilters
                 ? productRepository.findAll(pageable)
                 : productRepository.findAll(filterPredicate(filter), pageable);
         return products.map(this::toResponseDto);
@@ -60,6 +77,9 @@ public class ProductService {
             if (filter.getName() != null && !filter.getName().isEmpty()) {
                 predicate = criteriaBuilder.and(predicate, criteriaBuilder.like(root.get("name"), "%" + filter.getName() + "%"));
             }
+            if (filter.getCategoryId() != null) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("category").get("id"), filter.getCategoryId()));
+            }
             return predicate;
         };
     }
@@ -69,7 +89,18 @@ public class ProductService {
         product.setName(productRequest.getName());
         product.setPrice(productRequest.getPrice());
         product.setDescription(productRequest.getDescription());
+        product.setCategory(resolveCategory(productRequest.getCategoryId()));
+        product.setStockQuantity(productRequest.getStockQuantity() != null ? productRequest.getStockQuantity() : 0);
+        product.setMinStockThreshold(productRequest.getMinStockThreshold() != null ? productRequest.getMinStockThreshold() : 0);
         return productRepository.save(product);
+    }
+
+    private Category resolveCategory(Long categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Kategória nem található: " + categoryId));
     }
 
     @Transactional
@@ -109,6 +140,15 @@ public class ProductService {
                 .filter(java.util.Objects::nonNull)
                 .toList();
         productResponseDTO.setImageUrls(imageUrls);
+
+        discountRepository.findActiveByProductId(product.getId(), java.time.LocalDate.now()).ifPresent((Discount discount) -> {
+            productResponseDTO.setDiscountPercentage(discount.getPercentage());
+            productResponseDTO.setDiscountedPrice(product.getPrice() * (100 - discount.getPercentage()) / 100.0);
+        });
+
+        productResponseDTO.setAverageRating(reviewRepository.findAverageRatingByProductId(product.getId()));
+        productResponseDTO.setReviewCount(reviewRepository.countByProductId(product.getId()));
+
         return productResponseDTO;
     }
 
@@ -118,6 +158,9 @@ public class ProductService {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setDescription(request.getDescription());
+        product.setCategory(resolveCategory(request.getCategoryId()));
+        product.setStockQuantity(request.getStockQuantity() != null ? request.getStockQuantity() : 0);
+        product.setMinStockThreshold(request.getMinStockThreshold() != null ? request.getMinStockThreshold() : 0);
         return productRepository.save(product);
     }
 
@@ -131,6 +174,8 @@ public class ProductService {
         }
 
         cartRepository.deleteByProductId(id);
+        discountRepository.deleteByProductId(id);
+        reviewRepository.deleteByProductId(id);
 
         for (ProductImage image : product.getImages()) {
             minioService.deleteFile(image.getImageUrl());

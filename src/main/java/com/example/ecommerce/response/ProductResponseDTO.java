@@ -14,4 +14,12 @@ public class ProductResponseDTO {
     private double price;
     private String description;
     private List<String> imageUrls;
+    private Long categoryId;
+    private String categoryName;
+    private Integer discountPercentage;
+    private Double discountedPrice;
+    private int stockQuantity;
+    private int minStockThreshold;
+    private Double averageRating;
+    private long reviewCount;
 }

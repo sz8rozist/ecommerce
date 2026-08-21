@@ -41,7 +41,11 @@ public class CartService {
                     newItem.setQuantity(0);
                     return newItem;
                 });
-        item.setQuantity(item.getQuantity() + quantity);
+        int newQuantity = item.getQuantity() + quantity;
+        if (newQuantity > product.getStockQuantity()) {
+            throw new EcommerceApplicationException("Nincs elég készleten a termékből.", "quantity");
+        }
+        item.setQuantity(newQuantity);
         return cartRepository.save(item);
     }
 
@@ -50,6 +54,9 @@ public class CartService {
             throw new EcommerceApplicationException("A mennyiségnek pozitívnak kell lennie.", "quantity");
         }
         Cart item = getOwnedCartItem(user, cartId);
+        if (quantity > item.getProduct().getStockQuantity()) {
+            throw new EcommerceApplicationException("Nincs elég készleten a termékből.", "quantity");
+        }
         item.setQuantity(quantity);
         return cartRepository.save(item);
     }

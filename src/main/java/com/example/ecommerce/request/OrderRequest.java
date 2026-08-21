@@ -12,4 +12,5 @@ public class OrderRequest {
     private Long shippingMethodId;
     @NotNull(message = "A fizetési mód megadása kötelező.")
     private Long paymentMethodId;
+    private String couponCode;
 }

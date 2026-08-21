@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.ShippingMethod;
 import com.example.ecommerce.service.ShippingMethodService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ public class ShippingMethodController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<ShippingMethod> createShippingMethod(@RequestBody ShippingMethod shippingMethod) {
+    public ResponseEntity<ShippingMethod> createShippingMethod(@Valid @RequestBody ShippingMethod shippingMethod) {
         return ResponseEntity.status(HttpStatus.CREATED).body(shippingMethodService.create(shippingMethod));
     }
 
@@ -37,7 +38,7 @@ public class ShippingMethodController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping
-    public ResponseEntity<ShippingMethod> updateShippingMethod(@RequestBody ShippingMethod shippingMethod) {
+    public ResponseEntity<ShippingMethod> updateShippingMethod(@Valid @RequestBody ShippingMethod shippingMethod) {
         return ResponseEntity.ok(shippingMethodService.update(shippingMethod));
     }
 }
