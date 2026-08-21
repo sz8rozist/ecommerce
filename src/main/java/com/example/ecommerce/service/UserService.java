@@ -32,6 +32,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -194,5 +196,20 @@ public class UserService {
     public void deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(()->  new EntityNotFoundException("Nem található felhasználó"));
         userRepository.delete(user);
+    }
+
+    public User setAdminRole(Long id, boolean grantAdmin) {
+        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Nem található felhasználó"));
+        Role adminRole = roleRepository.findByName("ADMIN")
+                .orElseThrow(() -> new EcommerceApplicationException("Az ADMIN jogosultság nem található!"));
+
+        Collection<Role> roles = new HashSet<>(user.getRoles());
+        if (grantAdmin) {
+            roles.add(adminRole);
+        } else {
+            roles.removeIf(role -> "ADMIN".equals(role.getName()));
+        }
+        user.setRoles(roles);
+        return userRepository.save(user);
     }
 }

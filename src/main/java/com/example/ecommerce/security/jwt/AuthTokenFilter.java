@@ -1,14 +1,12 @@
 package com.example.ecommerce.security.jwt;
 
-import com.example.ecommerce.exception.EcommerceApplicationException;
-import com.example.ecommerce.exception.UnathorizedException;
 import com.example.ecommerce.security.user.EcommerceUserDetailsService;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
@@ -42,10 +41,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 var auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-        } catch (JwtException e) {
-            throw new UnathorizedException("Hibás vagy lejárt token, jelentkezzen be újra!");
         } catch (Exception e) {
-            throw new EcommerceApplicationException(e.getMessage());
+            // Érvénytelen/lejárt token, vagy a tokenhez tartozó felhasználó már nem létezik:
+            // ne dobjunk hibát itt, csak maradjon hitelesítetlen a kérés. Védett végpontnál ez
+            // majd a JwtAuthEntryPoint-on keresztül ad 401-et; nyilvános végpontoknál (pl.
+            // regisztráció) egy elavult tokennek nem szabadna elakasztania a kérést.
+            log.debug("Érvénytelen JWT token a kérésben, hitelesítés nélkül folytatva.", e);
         }
         filterChain.doFilter(request, response);
     }

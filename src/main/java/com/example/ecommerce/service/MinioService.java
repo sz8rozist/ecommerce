@@ -1,7 +1,5 @@
 package com.example.ecommerce.service;
 
-import com.example.ecommerce.exception.EcommerceApplicationException;
-import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;

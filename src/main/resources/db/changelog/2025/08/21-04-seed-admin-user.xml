@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Bootstrap admin fiók, hogy legyen belépési pont az admin felületre.
+         Jelszó: ChangeMe123! Ezt azonnal cseréld le éles/publikus környezetben! -->
+    <changeSet id="2025-08-21-seed-admin-1" author="rozsaistvan">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM user WHERE username = 'admin'</sqlCheck>
+        </preConditions>
+        <insert tableName="user">
+            <column name="username" value="admin"/>
+            <column name="password" value="$2y$10$EHWkIinHYv35LYd8akleUeBXi3vYkOXHMpuMjz.zI71yrLxGJa1rS"/>
+            <column name="email" value="admin@ecommerce.local"/>
+        </insert>
+        <sql>
+            INSERT INTO user_roles (user_id, role_id)
+            SELECT u.id, r.id FROM user u, role r
+            WHERE u.username = 'admin' AND r.name = 'ADMIN'
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

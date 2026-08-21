@@ -91,4 +91,10 @@ public class UserController {
         userService.deleteUser(id);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{id}/admin-role")
+    public ResponseEntity<User> setAdminRole(@PathVariable Long id, @RequestParam boolean grant) {
+        return ResponseEntity.ok(userService.setAdminRole(id, grant));
+    }
+
 }

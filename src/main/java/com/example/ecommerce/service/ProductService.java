@@ -99,7 +99,14 @@ public class ProductService {
     private ProductResponseDTO toResponseDto(Product product) {
         ProductResponseDTO productResponseDTO = mapper.toProductDto(product);
         List<String> imageUrls = product.getImages().stream()
-                .map(image -> minioService.getFileUrl(image.getImageUrl()))
+                .map(image -> {
+                    try {
+                        return minioService.getFileUrl(image.getImageUrl());
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .toList();
         productResponseDTO.setImageUrls(imageUrls);
         return productResponseDTO;

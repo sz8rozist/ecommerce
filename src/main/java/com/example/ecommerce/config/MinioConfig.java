@@ -5,8 +5,10 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 
 @Configuration
 @Slf4j
@@ -24,26 +26,33 @@ public class MinioConfig {
     @Value("${minio.bucket}")
     private String bucketName;
 
+    private MinioClient minioClient;
+
     @Bean
     public MinioClient minioClient() {
-        try {
-            MinioClient minioClient = MinioClient.builder()
-                    .endpoint(endpoint)
-                    .credentials(accessKey, secretKey)
-                    .build();
+        // Csak a klienst hozza létre (nincs hálózati hívás), így ez a bean sosem hiúsul meg
+        // amiatt, hogy a MinIO még nem elérhető az app indulásakor.
+        minioClient = MinioClient.builder()
+                .endpoint(endpoint)
+                .credentials(accessKey, secretKey)
+                .build();
+        return minioClient;
+    }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void ensureBucketExists() {
+        try {
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!found) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
                 log.info("Bucket létrehozva: {}", bucketName);
-                System.out.println("Bucket létrehozva: " + bucketName);
             } else {
                 log.info("Bucket már létezik: {}", bucketName);
             }
-            return minioClient;
         } catch (Exception e) {
-           // throw new RuntimeException("MinIO konfiguráció közben hiba történt", e);
+            log.warn("Nem sikerült elérni a MinIO-t ({}) vagy létrehozni/ellenőrizni a(z) '{}' bucketet. " +
+                    "A képfeltöltés/letöltés nem fog működni, amíg a MinIO nem elérhető. Ok: {}",
+                    endpoint, bucketName, e.getMessage());
         }
-        return null;
     }
 }
