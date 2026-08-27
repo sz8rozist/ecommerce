@@ -13,6 +13,7 @@ import com.example.ecommerce.repository.OrderItemRepository;
 import com.example.ecommerce.repository.ProductImageRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.ReviewRepository;
+import com.example.ecommerce.repository.WishlistItemRepository;
 import com.example.ecommerce.request.ProductFilter;
 import com.example.ecommerce.request.ProductRequest;
 import com.example.ecommerce.response.EcommerceApiMapper;
@@ -43,6 +44,8 @@ public class ProductService {
 
     private final ReviewRepository reviewRepository;
 
+    private final WishlistItemRepository wishlistItemRepository;
+
     private final EcommerceApiMapper mapper;
 
     private final MinioService minioService;
@@ -50,7 +53,8 @@ public class ProductService {
     public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository,
                            CartRepository cartRepository, OrderItemRepository orderItemRepository,
                            CategoryRepository categoryRepository, DiscountRepository discountRepository,
-                           ReviewRepository reviewRepository, EcommerceApiMapper mapper, MinioService minioService) {
+                           ReviewRepository reviewRepository, WishlistItemRepository wishlistItemRepository,
+                           EcommerceApiMapper mapper, MinioService minioService) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.cartRepository = cartRepository;
@@ -58,13 +62,18 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
         this.discountRepository = discountRepository;
         this.reviewRepository = reviewRepository;
+        this.wishlistItemRepository = wishlistItemRepository;
         this.mapper = mapper;
         this.minioService = minioService;
     }
 
     public Page<ProductResponseDTO> findALl(Pageable pageable, ProductFilter filter) {
         boolean noFilters = filter == null
-                || ((filter.getName() == null || filter.getName().isEmpty()) && filter.getCategoryId() == null);
+                || ((filter.getName() == null || filter.getName().isEmpty())
+                    && filter.getCategoryId() == null
+                    && filter.getMinPrice() == null
+                    && filter.getMaxPrice() == null
+                    && !Boolean.TRUE.equals(filter.getInStockOnly()));
         Page<Product> products = noFilters
                 ? productRepository.findAll(pageable)
                 : productRepository.findAll(filterPredicate(filter), pageable);
@@ -79,6 +88,15 @@ public class ProductService {
             }
             if (filter.getCategoryId() != null) {
                 predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("category").get("id"), filter.getCategoryId()));
+            }
+            if (filter.getMinPrice() != null) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.ge(root.get("price"), filter.getMinPrice()));
+            }
+            if (filter.getMaxPrice() != null) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.le(root.get("price"), filter.getMaxPrice()));
+            }
+            if (Boolean.TRUE.equals(filter.getInStockOnly())) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.greaterThan(root.get("stockQuantity"), 0));
             }
             return predicate;
         };
@@ -176,6 +194,7 @@ public class ProductService {
         cartRepository.deleteByProductId(id);
         discountRepository.deleteByProductId(id);
         reviewRepository.deleteByProductId(id);
+        wishlistItemRepository.deleteByProductId(id);
 
         for (ProductImage image : product.getImages()) {
             minioService.deleteFile(image.getImageUrl());

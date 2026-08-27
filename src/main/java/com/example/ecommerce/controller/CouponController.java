@@ -26,6 +26,12 @@ public class CouponController {
         return ResponseEntity.ok(couponService.findAll());
     }
 
+    @PreAuthorize("permitAll()")
+    @GetMapping("/validate")
+    public ResponseEntity<Coupon> validateCoupon(@RequestParam String code) {
+        return ResponseEntity.ok(couponService.validate(code));
+    }
+
     @PostMapping
     public ResponseEntity<Coupon> createCoupon(@Valid @RequestBody CouponRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(couponService.create(request));

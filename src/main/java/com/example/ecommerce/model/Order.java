@@ -28,8 +28,14 @@ public class Order {
 
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false) // Új mező: rendeléshez tartozó felhasználó
+    @JoinColumn(name = "user_id")
     private User user;
+
+    private String guestName;
+
+    private String guestEmail;
+
+    private String guestPhone;
 
     @ManyToOne
     @JoinColumn(name = "shipping_method_id")

@@ -23,4 +23,9 @@
     <include file="db/changelog/2025/08/21-08-tracking-settings-support.xml"/>
     <include file="db/changelog/2025/08/21-09-user-address.xml"/>
     <include file="db/changelog/2025/08/21-10-review-table.xml"/>
+    <include file="db/changelog/2026/08/21-01-address-table.xml"/>
+    <include file="db/changelog/2026/08/21-02-user-profile-fields.xml"/>
+    <include file="db/changelog/2026/08/21-03-category-parent.xml"/>
+    <include file="db/changelog/2026/08/21-04-wishlist-table.xml"/>
+    <include file="db/changelog/2026/08/21-05-guest-checkout.xml"/>
 </databaseChangeLog>

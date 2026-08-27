@@ -19,13 +19,18 @@ import com.example.ecommerce.repository.OrderRepository;
 import com.example.ecommerce.repository.PaymetnMethodRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.ShippingMethodRepository;
+import com.example.ecommerce.request.GuestOrderItemRequest;
+import com.example.ecommerce.request.GuestOrderRequest;
+import com.example.ecommerce.request.OrderFilter;
 import com.example.ecommerce.request.OrderRequest;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -33,6 +38,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -93,20 +100,13 @@ public class OrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setUnitPrice(effectivePrice(cartItem, today));
+            orderItem.setUnitPrice(effectivePrice(cartItem.getProduct(), today));
             orderItem.setOrder(order);
             return orderItem;
         }).toList();
         order.setItems(orderItems);
 
-        if (StringUtils.hasText(request.getCouponCode())) {
-            Coupon coupon = couponService.validate(request.getCouponCode());
-            double itemsTotal = orderItems.stream()
-                    .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
-                    .sum();
-            order.setCouponCode(coupon.getCode());
-            order.setDiscountAmount(itemsTotal * coupon.getPercentage() / 100.0);
-        }
+        applyCoupon(order, orderItems, request.getCouponCode());
 
         for (Cart item : items) {
             Product product = item.getProduct();
@@ -117,19 +117,92 @@ public class OrderService {
         orderRepository.save(order);
         cartRepository.deleteAll(items);
 
-        sendOrderConfirmationEmail(order);
+        sendOrderConfirmationEmail(order, user.getEmail());
 
         return order;
     }
 
-    private double effectivePrice(Cart cartItem, LocalDate today) {
-        return discountRepository.findActiveByProductId(cartItem.getProduct().getId(), today)
-                .map((Discount discount) -> cartItem.getProduct().getPrice() * (100 - discount.getPercentage()) / 100.0)
-                .orElse(cartItem.getProduct().getPrice());
+    @Transactional
+    public Order placeGuestOrder(GuestOrderRequest request) {
+        ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
+                .orElseThrow(() -> new EntityNotFoundException("Szállítási mód nem található."));
+        PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
+                .orElseThrow(() -> new EntityNotFoundException("Fizetési mód nem található."));
+
+        List<Product> products = request.getItems().stream()
+                .map(item -> productRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new EntityNotFoundException("Termék nem található: " + item.getProductId())))
+                .toList();
+
+        for (int i = 0; i < request.getItems().size(); i++) {
+            GuestOrderItemRequest itemRequest = request.getItems().get(i);
+            Product product = products.get(i);
+            if (itemRequest.getQuantity() > product.getStockQuantity()) {
+                throw new EcommerceApplicationException(
+                        "Nincs elég készleten a(z) \"" + product.getName() + "\" termékből.");
+            }
+        }
+
+        Order order = new Order();
+        order.setOrderDate(Instant.now());
+        order.setOrderAddress(request.getAddress());
+        order.setStatus(OrderStatus.PENDING);
+        order.setGuestName(request.getGuestName());
+        order.setGuestEmail(request.getGuestEmail());
+        order.setGuestPhone(request.getGuestPhone());
+        order.setShippingMethod(shippingMethod);
+        order.setPaymentMethod(paymentMethod);
+
+        LocalDate today = LocalDate.now();
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (int i = 0; i < request.getItems().size(); i++) {
+            GuestOrderItemRequest itemRequest = request.getItems().get(i);
+            Product product = products.get(i);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setQuantity(itemRequest.getQuantity());
+            orderItem.setUnitPrice(effectivePrice(product, today));
+            orderItem.setOrder(order);
+            orderItems.add(orderItem);
+        }
+        order.setItems(orderItems);
+
+        applyCoupon(order, orderItems, request.getCouponCode());
+
+        for (Product product : products) {
+            int quantity = request.getItems().stream()
+                    .filter(item -> item.getProductId().equals(product.getId()))
+                    .mapToInt(GuestOrderItemRequest::getQuantity)
+                    .sum();
+            product.setStockQuantity(product.getStockQuantity() - quantity);
+            productRepository.save(product);
+        }
+
+        orderRepository.save(order);
+
+        sendOrderConfirmationEmail(order, request.getGuestEmail());
+
+        return order;
     }
 
-    private void sendOrderConfirmationEmail(Order order) {
-        String email = order.getUser().getEmail();
+    private void applyCoupon(Order order, List<OrderItem> orderItems, String couponCode) {
+        if (StringUtils.hasText(couponCode)) {
+            Coupon coupon = couponService.validate(couponCode);
+            double itemsTotal = orderItems.stream()
+                    .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
+                    .sum();
+            order.setCouponCode(coupon.getCode());
+            order.setDiscountAmount(itemsTotal * coupon.getPercentage() / 100.0);
+        }
+    }
+
+    private double effectivePrice(Product product, LocalDate today) {
+        return discountRepository.findActiveByProductId(product.getId(), today)
+                .map((Discount discount) -> product.getPrice() * (100 - discount.getPercentage()) / 100.0)
+                .orElse(product.getPrice());
+    }
+
+    private void sendOrderConfirmationEmail(Order order, String email) {
         if (!StringUtils.hasText(email)) {
             return;
         }
@@ -177,18 +250,51 @@ public class OrderService {
         return orderRepository.findAll(pageable);
     }
 
-    public Page<Order> findAll(Pageable pageable, OrderStatus status) {
-        if (status == null) {
+    public Page<Order> findAll(Pageable pageable, OrderFilter filter) {
+        boolean noFilters = filter == null
+                || (filter.getStatus() == null
+                    && !StringUtils.hasText(filter.getUsername())
+                    && filter.getFromDate() == null
+                    && filter.getToDate() == null);
+        if (noFilters) {
             return orderRepository.findAll(pageable);
         }
-        return orderRepository.findByStatus(status, pageable);
+        return orderRepository.findAll(filterPredicate(filter), pageable);
+    }
+
+    private Specification<Order> filterPredicate(OrderFilter filter) {
+        return (root, query, criteriaBuilder) -> {
+            Predicate predicate = criteriaBuilder.conjunction();
+
+            if (filter.getStatus() != null) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("status"), filter.getStatus()));
+            }
+
+            if (StringUtils.hasText(filter.getUsername())) {
+                predicate = criteriaBuilder.and(predicate,
+                        criteriaBuilder.like(root.get("user").get("username"), "%" + filter.getUsername() + "%"));
+            }
+
+            if (filter.getFromDate() != null) {
+                Instant from = filter.getFromDate().atStartOfDay(ZoneId.systemDefault()).toInstant();
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.greaterThanOrEqualTo(root.get("orderDate"), from));
+            }
+
+            if (filter.getToDate() != null) {
+                Instant to = filter.getToDate().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.lessThan(root.get("orderDate"), to));
+            }
+
+            return predicate;
+        };
     }
 
     public Order findById(User user, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException("Rendelés nem található."));
         boolean isAdmin = user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
-        if (!isAdmin && !order.getUser().getId().equals(user.getId())) {
+        boolean isOwner = order.getUser() != null && order.getUser().getId().equals(user.getId());
+        if (!isAdmin && !isOwner) {
             throw new UnathorizedException("Ez a rendelés nem a bejelentkezett felhasználóhoz tartozik.");
         }
         return order;

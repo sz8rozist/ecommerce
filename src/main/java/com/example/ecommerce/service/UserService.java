@@ -215,6 +215,8 @@ public class UserService {
 
     public User updateProfile(User user, UpdateProfileRequest request) {
         user.setAddress(request.getAddress());
+        user.setFullName(request.getFullName());
+        user.setPhone(request.getPhone());
         return userRepository.save(user);
     }
 }

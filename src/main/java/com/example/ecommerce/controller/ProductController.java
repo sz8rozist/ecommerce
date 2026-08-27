@@ -42,12 +42,16 @@ public class ProductController {
                                                         @RequestParam(required = false, defaultValue = "10") int size,
                                                         @RequestParam(required = false) String name,
                                                         @RequestParam(required = false) Long categoryId,
+                                                        @RequestParam(required = false) Double minPrice,
+                                                        @RequestParam(required = false) Double maxPrice,
+                                                        @RequestParam(required = false) Boolean inStockOnly,
                                                         @RequestParam(required = false, defaultValue = "id") String sortBy,
                                                         @RequestParam(required = false, defaultValue = "asc") String sortOrder) {
 
         Sort.Direction direction = "asc".equals(sortOrder) ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        return ResponseEntity.ok(productService.findALl(pageable, new ProductFilter(name, categoryId)));
+        ProductFilter filter = new ProductFilter(name, categoryId, minPrice, maxPrice, inStockOnly);
+        return ResponseEntity.ok(productService.findALl(pageable, filter));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
