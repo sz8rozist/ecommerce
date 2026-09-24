@@ -301,6 +301,20 @@ public class OrderService {
     }
 
     @Transactional
+    public Order cancelOwnOrder(User user, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Rendelés nem található."));
+        boolean isOwner = order.getUser() != null && order.getUser().getId().equals(user.getId());
+        if (!isOwner) {
+            throw new UnathorizedException("Ez a rendelés nem a bejelentkezett felhasználóhoz tartozik.");
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new EcommerceApplicationException("A rendelés már nem mondható le.");
+        }
+        return updateOrderStatus(orderId, OrderStatus.CANCELED);
+    }
+
+    @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new EntityNotFoundException("Rendelés nem található."));
 
